@@ -33,7 +33,6 @@ process.env.SESSION_SECRET &&
     })
   );
 
-
 app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(express.static(path.join(__dirname, "..", "build")));
 
@@ -42,27 +41,25 @@ app.get("/", (req, res): void => {
   res.sendFile(path.join(__dirname, "..", "build", "index.html"));
 });
 
-app.get("/user", async (req, res): Promise<void> => {
-  const newUser = new User({
-    username: "Poemmys",
-    password: "ballz",
-  });
+app.post(
+  "/register",
+  async (req, res): Promise<Response<any, Record<string, any>>> => {
+    const { username, password } = req.body;
+    const check = await User.findOne({ username });
+    if (check) {
+      return res.json("Username already in use");
+    }
 
-  await newUser.save();
-});
-
-app.post("/register", async (req, res) => {
-  const { username, password } = req.body;
-  const hash: string = await bcrypt.hash(password, 12);
-  if (hash) {
+    const hash: string = await bcrypt.hash(password, 12);
     const newUser = new User({
       username,
       password: hash,
     });
 
     await newUser.save();
+    return res.json("Succesfully registered");
   }
-});
+);
 
 app.post("/login", (req, res): void => {
   console.log("Success");
