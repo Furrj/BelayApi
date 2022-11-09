@@ -5,10 +5,9 @@ import mongoose from "mongoose";
 import morgan from "morgan";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import passport from "passport";
-import { Strategy } from "passport-local";
 import session from "express-session";
 import path from "path";
+import bcrypt from "bcrypt";
 
 //MONGO
 import "./models/User";
@@ -34,26 +33,13 @@ process.env.SESSION_SECRET &&
     })
   );
 
-//PASSPORT
-app.use(passport.initialize());
-app.use(passport.session());
-passport.use(new Strategy(User.authenticate()));
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
 
 app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(express.static(path.join(__dirname, "..", "build")));
 
 //ROUTES
 app.get("/", (req, res): void => {
-  res.sendFile(
-    path.join(__dirname, "..", "build", "index.html")
-  );
-});
-
-app.post("/login", (req, res): void => {
-  console.log(req.body);
-  res.json("Successful post request");
+  res.sendFile(path.join(__dirname, "..", "build", "index.html"));
 });
 
 app.get("/user", async (req, res): Promise<void> => {
@@ -66,24 +52,20 @@ app.get("/user", async (req, res): Promise<void> => {
 });
 
 app.post("/register", async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    const regCheck = await User.exists({ username: username });
-    if (regCheck) {
-      res.json("Taken");
-      console.log("Taken");
-    } else {
-      const newUser = new User({
-        username,
-      });
-      const regUser = await User.register(newUser, password);
-      res.json("Registered");
-      console.log(regUser);
-    }
-  } catch (e) {
-    console.log(`Error: ${e}`);
-    res.json(`Error: ${e}`);
+  const { username, password } = req.body;
+  const hash: string = await bcrypt.hash(password, 12);
+  if (hash) {
+    const newUser = new User({
+      username,
+      password: hash,
+    });
+
+    await newUser.save();
   }
+});
+
+app.post("/login", (req, res): void => {
+  console.log("Success");
 });
 
 app.listen(PORT, (): void => {
