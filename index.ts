@@ -37,7 +37,7 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(express.static(path.join(__dirname, "..", "build")));
 
 //ROUTES
-app.get("/", (req, res): void => {
+app.get("/*", (req, res): void => {
   res.sendFile(path.join(__dirname, "..", "build", "index.html"));
 });
 
