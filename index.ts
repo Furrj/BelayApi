@@ -34,12 +34,12 @@ process.env.SESSION_SECRET &&
   );
 
 app.use(cookieParser(process.env.COOKIE_SECRET));
-app.use(express.static(path.join(__dirname, "..", "build")));
+app.use(express.static(path.join(__dirname, "..", "client", "build")));
 
 //ROUTES
-app.get("/*", (req, res): void => {
-  res.sendFile(path.join(__dirname, "..", "build", "index.html"));
-});
+// app.get("/*", (req, res): void => {
+//   res.sendFile(path.join(__dirname, "..", "client", "build", "index.html"));
+// });
 
 app.post(
   "/register",
