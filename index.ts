@@ -47,7 +47,9 @@ app.post(
     const { username, password } = req.body;
     const check = await User.findOne({ username });
     if (check) {
-      return res.json("Username already in use");
+      return res.json("Taken");
+    } else {
+      return res.json("Success");
     }
 
     const hash: string = await bcrypt.hash(password, 12);
