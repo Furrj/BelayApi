@@ -5,7 +5,6 @@ import mongoose, { Mongoose, Model } from "mongoose";
 import morgan from "morgan";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import cookieSession from "cookie-session";
 import session from "express-session";
 import path from "path";
 import bcrypt from "bcrypt";
@@ -23,13 +22,6 @@ process.env.MONGO_URI && mongoose.connect(process.env.MONGO_URI);
 app.use(cors());
 app.use(express.json());
 app.use(morgan("tiny"));
-
-app.use(
-  cookieSession({
-    httpOnly: false,
-    keys: ["doasthouwilt"],
-  })
-);
 
 //SESSION
 declare module "express-session" {
