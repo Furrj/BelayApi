@@ -24,11 +24,11 @@ app.use(express.json());
 app.use(morgan("tiny"));
 
 //SESSION
-declare module "express-session" {
-  interface SessionData {
-    user_id: string;
-  }
-}
+// declare module "express-session" {
+//   interface SessionData {
+//     user_id: string;
+//   }
+// }
 
 process.env.SESSION_SECRET &&
   app.use(
@@ -49,6 +49,14 @@ type userInfo = {
   password: string;
 };
 
+type userSend = {
+  username: string;
+  id: string;
+  valid: boolean;
+};
+
+const invalidUser: userSend = { username: "", id: "", valid: false };
+
 //ROUTES
 // app.get("/*", (req, res): void => {
 //   res.sendFile(path.join(__dirname, "..", "build", "index.html"));
@@ -58,9 +66,9 @@ app.post(
   "/register",
   async (req, res): Promise<Response<any, Record<string, any>>> => {
     const { username, password }: userInfo = req.body;
-    const check: Model<IUser> | any = await User.findOne({ username });
-    if (check) {
-      return res.json("Taken");
+    const userQuery: Model<IUser> | any = await User.findOne({ username });
+    if (userQuery) {
+      return res.json(invalidUser);
     }
 
     const hash: string = await bcrypt.hash(password, 12);
@@ -71,8 +79,11 @@ app.post(
 
     await newUser.save();
 
-    req.session.user_id = newUser._id;
-    return res.json("Succesfully registered: " + req.session.user_id);
+    return res.json({
+      username: newUser.username,
+      id: newUser._id,
+      valid: true,
+    });
   }
 );
 
@@ -82,7 +93,7 @@ app.post(
     const { username, password }: userInfo = req.body;
     const userQuery: Model<IUser> | any = await User.findOne({ username });
     if (!userQuery) {
-      return res.json("Invalid");
+      return res.json(invalidUser);
     }
 
     const checkPassword: boolean = await bcrypt.compare(
@@ -90,11 +101,13 @@ app.post(
       userQuery.password
     );
     if (checkPassword) {
-      req.session.user_id = userQuery._id;
-      res.cookie("user_id", req.session.user_id);
-      return res.json("Logged in: " + req.session.user_id);
+      return res.json({
+        username: userQuery.username,
+        id: userQuery._id,
+        valid: true,
+      });
     } else {
-      return res.json("Invalid");
+      return res.json(invalidUser);
     }
   }
 );
