@@ -1,5 +1,5 @@
-import * as dotenv from "dotenv";
-dotenv.config();
+// import * as dotenv from "dotenv";
+// dotenv.config();
 import express, { Express, Request, Response } from "express";
 import mongoose, { Mongoose, Model } from "mongoose";
 import morgan from "morgan";
