@@ -1,5 +1,5 @@
-import * as dotenv from "dotenv";
-dotenv.config();
+// import * as dotenv from "dotenv";
+// dotenv.config();
 import express, { Express, Request, Response } from "express";
 import mongoose, { Mongoose, Model } from "mongoose";
 import morgan from "morgan";
@@ -19,7 +19,7 @@ const app = express();
 
 process.env.MONGO_URI && mongoose.connect(process.env.MONGO_URI);
 
-app.use(cors({credentials: true}));
+app.use(cors());
 app.use(express.json());
 app.use(morgan("tiny"));
 
@@ -36,12 +36,12 @@ process.env.SESSION_SECRET &&
       secret: process.env.SESSION_SECRET,
       resave: false,
       saveUninitialized: true,
-      cookie: { httpOnly: true, maxAge: 60 },
+      cookie: { maxAge: 100 * 60 * 15 },
     })
   );
 
 app.use(cookieParser(process.env.COOKIE_SECRET));
-app.use(express.static(path.join(__dirname, "..", "client", "build")));
+app.use(express.static(path.join(__dirname, "..", "build")));
 
 //TYPES
 type userInfo = {
@@ -50,9 +50,9 @@ type userInfo = {
 };
 
 //ROUTES
-// app.get("/*", (req, res): void => {
-//   res.sendFile(path.join(__dirname, "..", "client", "build", "index.html"));
-// });
+app.get("/*", (req, res): void => {
+  res.sendFile(path.join(__dirname, "..", "build", "index.html"));
+});
 
 app.post(
   "/register",
@@ -85,9 +85,13 @@ app.post(
       return res.json("Invalid");
     }
 
-    const checkPassword: boolean = await bcrypt.compare(password, userQuery.password);
+    const checkPassword: boolean = await bcrypt.compare(
+      password,
+      userQuery.password
+    );
     if (checkPassword) {
       req.session.user_id = userQuery._id;
+      res.cookie("user_id", req.session.user_id);
       return res.json("Logged in: " + req.session.user_id);
     } else {
       return res.json("Invalid");
